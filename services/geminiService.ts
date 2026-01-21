@@ -15,7 +15,8 @@ export const getAIListingHelp = async (imageBase64: string, itemName?: string): 
     // Initialisation avec la nouvelle librairie
     const genAI = new GoogleGenerativeAI(apiKey);
     // Utilisation de la version stable spécifique
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" }); // Modèle rapide
+    // On utilise le modèle Pro, qui est la référence absolue de disponibilité
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" }); // Modèle rapide
 
     const prompt = `Analyze this image of a returned item. 
     1. Identify exactly what the item is and provide a clear, concise name (max 40 chars).
