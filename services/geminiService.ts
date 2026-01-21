@@ -1,22 +1,20 @@
-import { GoogleGenerativeAI } from "@google/generative-ai"; // Nouvelle librairie
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GeminiSuggestion } from "../types";
 
 export const getAIListingHelp = async (imageBase64: string, itemName?: string): Promise<GeminiSuggestion & { name: string }> => {
-  // Récupération de la clé API
   const apiKey = process.env.API_KEY;
 
   if (!apiKey) {
     console.error("ERREUR : Clé API manquante !");
-    alert("Clé API manquante. Vérifiez la configuration.");
+    alert("Clé API manquante. Vérifiez la configuration sur Render.");
     throw new Error("Clé API manquante");
   }
 
   try {
-    // Initialisation avec la nouvelle librairie
     const genAI = new GoogleGenerativeAI(apiKey);
-    // Utilisation de la version stable spécifique
-    // On utilise le modèle Pro, qui est la référence absolue de disponibilité
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" }); // Modèle rapide
+    
+    // CHANGEMENT ICI : Utilisation de "gemini-1.5-pro" qui est le modèle principal
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     const prompt = `Analyze this image of a returned item. 
     1. Identify exactly what the item is and provide a clear, concise name (max 40 chars).
@@ -32,7 +30,7 @@ export const getAIListingHelp = async (imageBase64: string, itemName?: string): 
       "category": "string"
     }`;
 
-    // Préparation de l'image (retrait du préfixe data:image/...)
+    // Nettoyage de l'image (au cas où)
     const base64Data = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
 
     const imagePart = {
@@ -46,17 +44,19 @@ export const getAIListingHelp = async (imageBase64: string, itemName?: string): 
     const response = await result.response;
     const text = response.text();
     
-    // Nettoyage du JSON (au cas où l'IA ajoute des balises Markdown)
     const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
     
     return JSON.parse(cleanedText) as GeminiSuggestion & { name: string };
 
   } catch (error) {
-    console.error("ERREUR DÉTAILLÉE GEMINI :", error); // <--- Regardez ceci dans la console F12
+    console.error("ERREUR GEMINI (Voir détails) :", error);
+    // On affiche l'erreur à l'utilisateur pour comprendre ce qui se passe
+    alert(`Erreur IA : ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+    
     return {
-      name: itemName || "Erreur d'analyse",
+      name: itemName || "Erreur Technique",
       suggestedPrice: 0,
-      description: "Impossible d'analyser l'image. Vérifiez votre clé API.",
+      description: "L'IA n'a pas pu répondre. Vérifiez la console.",
       category: "Erreur"
     };
   }
